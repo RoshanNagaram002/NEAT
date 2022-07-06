@@ -39,16 +39,40 @@ class Genome:
         total_weight_difference = 0
         num_matching = 0
 
-        g1_pointer, g2_pointer = 0, 0
-        while g1_pointer < len()
+        N = max(len(self.connections), len(g2.connections))
+        if N < 20:
+            N = 1
 
-    
-    def mutate(self)-> None:
-        return
-    
+        g1_pointer, g2_pointer = 0, 0
+        while g1_pointer < len(self.connections) and g2_pointer < len(g2.connections):
+            curr_g1_con, curr_g2_con = self.connections.get(g1_pointer), g2.connections.get(g2_pointer)
+            if curr_g1_con == curr_g2_con:
+                num_matching += 1
+                total_weight_difference += abs(curr_g1_con.weight - curr_g2_con.weight)
+                g1_pointer += 1
+                g2_pointer += 1
+            
+            elif curr_g1_con < curr_g2_con:
+                num_disjoint += 1
+                g1_pointer += 1
+            
+            elif curr_g2_con < curr_g1_con:
+                num_disjoint += 1
+                g2_pointer += 1
+        
+        if g1_pointer < len(self.connections):
+            num_excess = len(self.connections) - g1_pointer
+        elif g2_pointer < len(g2.connections):
+            num_excess = len(g2.connections) - g2_pointer
+        
+        return ((c1 * num_excess) / N) + ((c2 * num_disjoint) / N) + (c3 * (total_weight_difference / num_matching))
+
     def cross_over(self, g2):
         return None
     
+    def mutate(self)-> None:
+        return
+        
     def add_node(self)-> None:
         return
     
@@ -66,6 +90,7 @@ class Genome:
     
     def get_output(self) -> List[float]:
         return [0.0]
+
 
 
 

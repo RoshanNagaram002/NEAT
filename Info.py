@@ -14,7 +14,8 @@ class Randomized_Info:
         if key not in self.dataset:
             self.datalist.append(key)
             self.dataset.add(key)
-        print("Key is already in dataset")
+        else:
+            print("Key is already in dataset")
     
     def clear(self) -> None:
         self.datalist = []
@@ -30,13 +31,19 @@ class Randomized_Info:
     def __len__(self):
         return len(self.datalist)
     
+    def __str__(self):
+        return str(self.datalist)
+    
 class Sorted_Randomized_Info(Randomized_Info):
     def __init__(self):
-        super()
+        super().__init__()
 
     def add(self, key):
-        self.dataset.add(key)
-        i = 0
-        while key > self.datalist[i]:
-            i += 1
-        self.datalist.insert(i, key)
+        if key not in self.dataset:
+            self.dataset.add(key)
+            i = 0
+            while i < len(self.datalist) and key > self.datalist[i]:
+                i += 1
+            self.datalist.insert(i, key)
+        else:
+            print("Key is already in dataset")
