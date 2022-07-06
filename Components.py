@@ -37,4 +37,24 @@ class Connection:
         self.weight = weight
         self.is_enabled = is_enabled
 
-        # Add eq, not_eq, lt, gt, and hashfunc 
+    def __eq__(self, other):
+        return self.innovation_id == other.innovation_id
+    
+    def __ne__(self, other):
+        return self.innovation_id != other.innovation_id
+    
+    def __lt__(self, other):
+        return self.innovation_id < other.innovation_id
+    
+    def __gt__(self, other):
+        return self.innovation_id > other.innovation_id
+    
+    def __le__(self, other):
+        return self.innovation_id <= other.innovation_id
+    
+    def __ge__(self, other):
+        return self.innovation_id >= other.innovation_id
+    
+    def __hash__(self):
+        return self.innovation_id
+ 

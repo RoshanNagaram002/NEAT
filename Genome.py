@@ -2,6 +2,7 @@ from Info import Randomized_Info, Sorted_Randomized_Info
 import Neat
 import numpy as np
 from Components import Node, Connection
+from typing import List
 class Genome:
     def __init__(self, neat: Neat.Neat, num_input_nodes: int, num_output_nodes: int):
         self.nodes = Randomized_Info()
@@ -29,7 +30,18 @@ class Genome:
 
     
     def get_distance(self, g2)-> float:
-        return 0.0
+        c1 = self.neat.c1
+        c2 = self.neat.c2
+        c3 = self.neat.c3
+
+        num_disjoint = 0
+        num_excess = 0
+        total_weight_difference = 0
+        num_matching = 0
+
+        g1_pointer, g2_pointer = 0, 0
+        while g1_pointer < len()
+
     
     def mutate(self)-> None:
         return
@@ -51,6 +63,9 @@ class Genome:
     
     def toggle_enable(self)-> None:
         return
+    
+    def get_output(self) -> List[float]:
+        return [0.0]
 
 
 

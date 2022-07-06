@@ -27,6 +27,9 @@ class Randomized_Info:
         self.datalist.remove(key)
         self.dataset.remove(key)
     
+    def __len__(self):
+        return len(self.datalist)
+    
 class Sorted_Randomized_Info(Randomized_Info):
     def __init__(self):
         super()
