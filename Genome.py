@@ -1,11 +1,15 @@
-from Info import Randomized_Info, Sorted_Randomized_Info
+from Info import Randomized_Info, Sorted_Randomized_Info, ListDict
 import numpy as np
 from Components import Node, Connection
 from typing import List
 class Genome:
     def __init__(self, neat, num_input_nodes: int, num_output_nodes: int):
+        # Data
         self.nodes = Randomized_Info()
         self.connections = Sorted_Randomized_Info()
+        self.unsplit_connections = ListDict()
+        self.tup_to_connection = {}
+
         self.neat = neat
         self.num_input_nodes = num_input_nodes
         self.num_output_nodes = num_output_nodes
@@ -121,6 +125,8 @@ class Genome:
         child_genome.connections = inherited_connections
         child_genome.nodes = inherited_nodes
 
+        set_child_data(child_genome)
+
         return child_genome
     
     def mutate(self)-> None:
@@ -136,7 +142,12 @@ class Genome:
             self.toggle_enable()
         
     def add_node(self)-> None:
-        rando_con = self.connections.get_random_element()
+        if len(self.connections) == 0:
+            return
+        rando_tup = self.unsplit_connections.choose_random_item()
+        self.unsplit_connections.remove_item(rando_tup)
+
+        rando_con = self.tup_to_connection[rando_tup]
 
         split_node = self.neat.create_hidden_node(rando_con.left, rando_con.right)
         self.nodes.add(split_node)
@@ -147,36 +158,51 @@ class Genome:
         rando_con.is_enabled = False
 
         self.connections.add(from_con)
+        self.tup_to_connection[(from_con.left, from_con.right)] = from_con
+        self.unsplit_connections.add_item((from_con.left, from_con.right))
+        
         self.connections.add(to_con)
+        self.tup_to_connection[(to_con.left, to_con.right)] = to_con
+        self.unsplit_connections.add_item((to_con.left, to_con.right))
     
     def add_link(self)-> None:
         sorted_nodes = self._get_topologically_sorted_nodes()
         connection_ids = set()
 
-        for con in self.connections.datalist:
+        for con in self.connections:
             connection_ids.add(con.innovation_id)
         
         for _ in range(100):
-            left = np.random.randint(0, len(sorted_nodes) - self.num_output_nodes)
-            right = np.random.randint(self.num_input_nodes, len(sorted_nodes))
+            left_index = np.random.randint(0, len(sorted_nodes) - self.num_output_nodes)
 
+            right_index = np.random.randint(max(left_index + 1, self.num_input_nodes) , len(sorted_nodes))
+
+            left, right = sorted_nodes[left_index].node_id, sorted_nodes[right_index].node_id
             id = self.neat.get_connection_id(left, right)
             if id == -1 or id not in connection_ids:
                 new_weight = (np.random.random() * 2 - 1) * self.neat.shift_reset_strength
                 new_con = self.neat.create_hidden_connection(left, right, new_weight, True)
+                self.tup_to_connection[(left, right)] = new_con
                 self.connections.add(new_con)
+                self.unsplit_connections.add_item((left, right))
                 return
 
     
     def reset_weight(self)-> None:
+        if len(self.connections) == 0:
+            return
         rando_con = self.connections.get_random_element()
         rando_con.weight = (np.random.random() * 2 - 1) * self.neat.shift_reset_strength
     
     def shift_weight(self)-> None:
+        if len(self.connections) == 0:
+            return
         rando_con = self.connections.get_random_element()
         rando_con.weight = rando_con.weight + (np.random.random() * 2 - 1) * self.neat.shift_weight_strength
     
     def toggle_enable(self)-> None:
+        if len(self.connections) == 0:
+            return
         rando_con = self.connections.get_random_element()
         rando_con.is_enabled = not rando_con.is_enabled
     
@@ -188,12 +214,12 @@ class Genome:
         return [0.0]
     
     def _get_topologically_sorted_nodes(self):
+        # Returns [input_nodes, topo sorted hidden nodes ..., output_nodes]
+        adj_dict = {node.node_id: [] for node in self.nodes}
+        incoming_counts = {node.node_id: 0 for node in self.nodes}
+        id_to_node = {node.node_id: node for node in self.nodes}
 
-        adj_dict = {node.node_id: [] for node in self.nodes.datalist}
-        incoming_counts = {node.node_id: 0 for node in self.nodes.datalist}
-        id_to_node = {node.node_id: node for node in self.nodes.datalist}
-
-        for con in self.connections.datalist:
+        for con in self.connections:
             adj_dict[con.left].append(con.right)
             incoming_counts[con.right] += 1
         
@@ -219,6 +245,24 @@ class Genome:
             sorted_nodes.append(id_to_node[i])
         
         return sorted_nodes
+
+def set_child_data(child:Genome) -> None:
+    # Call this assuming you have the inherited nodes and inherited connections
+    # This is to set the unsplit connections and the tup to_connection
+
+    for con in child.connections:
+        child.tup_to_connection[(con.left, con.right)] = con
+        child.unsplit_connections.add_item((con.left, con.right))
+    
+    # Filter the unsplit_connections
+
+    for node in child.nodes:
+        if node.is_input or node.is_output:
+            continue
+        origin_conn = child.neat.node_to_origin_conn[node.node_id]
+        child.unsplit_connections.remove_item(origin_conn)
+
+
 
 
 

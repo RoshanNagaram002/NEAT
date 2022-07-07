@@ -24,6 +24,7 @@ class Neat:
 
         self.global_connections = {}
         self.global_nodes = {}
+        self.node_to_origin_conn = {}
 
         # Populate global_nodes with the input and output nodes
         # -1 Means None
@@ -40,6 +41,7 @@ class Neat:
         else:
             node_id = len(self.global_nodes)
             self.global_nodes[(left, right)] = node_id
+            self.node_to_origin_conn[node_id] = (left, right)
         
         new_node = Node(node_id)
         if act_func != None:
@@ -64,47 +66,59 @@ class Neat:
         return id
     
 myneat = Neat(3, 2, 100)
-g = Genome.Genome(myneat, 3, 2)
+g1 = Genome.Genome(myneat, 3, 2)
+g2 = Genome.Genome(myneat, 3, 2)
 from graphviz import Digraph
 
+count = -1
 while True:
-    n = input("Mutation?")
-
-    if n == 'q':
+    count += 1
+    if count == 1000:
         break
+    # n = input("Mutation?")
 
-    if n == '1':
-        g.add_link()
+    # if n == 'q':
+    #     break
+    g1.mutate()
+    g2.mutate()
+    # if n == '1':
+    #     g.add_link()
     
-    elif n == '2':
-        g.add_node()
+    # elif n == '2':
+    #     g.add_node()
     
-    elif n == '3':
-        g.shift_weight()
+    # elif n == '3':
+    #     g.shift_weight()
     
-    elif n == '4':
-        g.reset_weight()
+    # elif n == '4':
+    #     g.reset_weight()
     
-    elif n == '5':
-        g.toggle_enable()
-    
-    dot = Digraph(comment = 'Genome')
-    for node in g.nodes.datalist:
-        dot.node(str(node.node_id), str(node.node_id))
-
-    for con in g.connections.datalist:
-        start, end = str(con.left), str(con.right)
-        if con.is_enabled:
-            dot.edge(start, end, label = str(con.weight), color = 'green')
-        else:
-            dot.edge(start, end, label = str(con.weight), color = 'red')
-
-    dot.format= 'png'
-    dot.render(directory='visualizaions', view = True)
-
-    print([con.innovation_id for con in g.connections.datalist])
-    print([node.node_id for node in g._get_topologically_sorted_nodes()])
-
-
-
+    # elif n == '5':
+    #     g.toggle_enable()
+    # index = 0
+    # dot = Digraph(comment = str(index))
+    for g in [g1, g2]:
+    #     curr = None
+    #     if index == 0:
+    #         print('g1')
+    #         curr = 'g1_'
+    #         index += 1
+    #     else:
+    #         curr = 'g2_'
+    #         print('g2')
         
+    #     for node in g.nodes.datalist:
+    #         dot.node(curr + str(node.node_id), curr + str(node.node_id))
+
+    #     for con in g.connections.datalist:
+    #         start, end = str(con.left), str(con.right)
+    #         if con.is_enabled:
+    #             dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'green')
+    #         else:
+    #             dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'red')
+
+        print([con.innovation_id for con in g.connections.datalist])
+        print([node.node_id for node in g._get_topologically_sorted_nodes()])
+    
+    # dot.format= 'png'
+    # dot.render(directory='visualizaions', view = True)
