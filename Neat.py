@@ -1,7 +1,10 @@
+from turtle import color
 from Components import Node, Connection
 import Genome
 class Neat:
-    def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, shift_weight_strength = 0.3, shift_reset_strength = 1, survival_percentage = 0.8):
+    def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, 
+                shift_weight_strength = 0.3, shift_reset_strength = 1, survival_percentage = 0.8,
+                add_node_chance = 0.4, add_link_chance = 0.4, reset_chance = 0.4, shift_chance = 0.4, toggle_chance = 0.4):
         self.input_size = input_size
         self.output_size = output_size
         self.max_organisms = num_organisms
@@ -12,6 +15,12 @@ class Neat:
         self.shift_weight_strength = shift_weight_strength
         self.shift_reset_strength = shift_reset_strength
         self.survival_percentage = survival_percentage
+
+        self.add_node_chance = add_node_chance
+        self.add_link_chance = add_link_chance
+        self.reset_chance = reset_chance
+        self.shift_chance = shift_chance
+        self.toggle_chance = toggle_chance
 
         self.global_connections = {}
         self.global_nodes = {}
@@ -50,7 +59,10 @@ class Neat:
     
 myneat = Neat(3, 2, 100)
 g = Genome.Genome(myneat, 3, 2)
-
+con1  = Connection(1, 0, 3, .5, True)
+con2  = Connection(2, 0, 4, .75, False)
+g.connections.add(con1)
+g.connections.add(con2)
 from graphviz import Digraph
 
 dot = Digraph(comment = 'Genome')
@@ -60,7 +72,10 @@ for node in g.nodes.datalist:
 
 for con in g.connections.datalist:
     start, end = str(con.left), str(con.right)
-    dot.edge(start, end, label = str(con.weight))
+    if con.is_enabled:
+        dot.edge(start, end, label = str(con.weight), color = 'green')
+    else:
+        dot.edge(start, end, label = str(con.weight), color = 'red')
 
 dot.format= 'png'
 dot.render(directory='visualizaions', view = True)

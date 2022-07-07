@@ -124,7 +124,16 @@ class Genome:
         return child_genome
     
     def mutate(self)-> None:
-        return
+        if np.random.random() <= self.neat.add_node_chance:
+            self.add_node()
+        if np.random.random() <= self.neat.add_link_chance:
+            self.add_link()
+        if np.random.random() <= self.neat.reset_chance:
+            self.reset_weight()
+        if np.random.random() <= self.neat.shift_chance:
+            self.shift_weight()
+        if np.random.random() <= self.neat.toggle_chance:
+            self.toggle_enable()
         
     def add_node(self)-> None:
         rando_con = self.connections.get_random_element()
@@ -133,7 +142,7 @@ class Genome:
         self.nodes.add(split_node)
 
         from_con = self.neat.create_hidden_connection(rando_con.left, split_node.node_id, 1, True)
-        to_con = self.neat.create_hidden_connection(rando_con.left, split_node.node_id, rando_con.weight, True)
+        to_con = self.neat.create_hidden_connection(split_node.node_id, rando_con.right, rando_con.weight, True)
 
         rando_con.is_enabled = False
 
@@ -141,7 +150,29 @@ class Genome:
         self.connections.add(to_con)
     
     def add_link(self)-> None:
-        return
+        node_to_index = {self.nodes.datalist[i].node_id:i for i in range(len(self.nodes))}
+        visited = [False for _ in range(len(self.nodes))]
+
+        sorted_nodes = []
+        incoming_counts = [0 for _ in range(len(self.nodes))]
+        outgoing_edges = [[] for _ in range(len(self.nodes))]
+        for con in self.connections.datalist:
+            index_right = node_to_index[con.right]
+            index_left = node_to_index[con.left]
+            incoming_counts[index_right] += 1
+            outgoing_edges[index_left].append(index_right)
+        
+        stack = [node_to_index[i] for i in range(self.num_input_nodes)]
+        for i in range(self.num_input_nodes):
+            visited[node_to_index[i]] = True
+        
+        curr_index = 0
+        while curr_index < len(sorted_nodes):
+            node = sorted_nodes[curr_index]
+            for neighbor in outgoing_edges[node]:
+
+
+            
     
     def reset_weight(self)-> None:
         rando_con = self.connections.get_random_element()
