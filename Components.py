@@ -5,6 +5,9 @@ class Node:
         self.act_func = act_func
         self.is_input = is_input
         self.is_output = is_output
+    
+    def copy(self):
+        return Node(self.node_id, self.act_func, self.is_input, self.is_output)
 
     def __eq__(self, other):
         return self.node_id == other.node_id
@@ -36,6 +39,9 @@ class Connection:
         self.right = right
         self.weight = weight
         self.is_enabled = is_enabled
+    
+    def copy(self):
+        return Connection(self.innovation_id, self.left, self.right, self.weight, self.is_enabled)
 
     def __eq__(self, other):
         return self.innovation_id == other.innovation_id
