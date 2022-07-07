@@ -57,28 +57,53 @@ class Neat:
         
         return Connection(innovation_id, left, right, weight, is_enabled)
     
+    def get_connection_id(self, left: int, right: int):
+        id = -1
+        if (left, right) in self.global_connections:
+            id = self.global_connections[(left, right)]
+        return id
+    
 myneat = Neat(3, 2, 100)
 g = Genome.Genome(myneat, 3, 2)
-con1  = Connection(1, 0, 3, .5, True)
-con2  = Connection(2, 0, 4, .75, False)
-g.connections.add(con1)
-g.connections.add(con2)
 from graphviz import Digraph
 
-dot = Digraph(comment = 'Genome')
+while True:
+    n = input("Mutation?")
 
-for node in g.nodes.datalist:
-    dot.node(str(node.node_id), str(node.node_id))
+    if n == 'q':
+        break
 
-for con in g.connections.datalist:
-    start, end = str(con.left), str(con.right)
-    if con.is_enabled:
-        dot.edge(start, end, label = str(con.weight), color = 'green')
-    else:
-        dot.edge(start, end, label = str(con.weight), color = 'red')
+    if n == '1':
+        g.add_link()
+    
+    elif n == '2':
+        g.add_node()
+    
+    elif n == '3':
+        g.shift_weight()
+    
+    elif n == '4':
+        g.reset_weight()
+    
+    elif n == '5':
+        g.toggle_enable()
+    
+    dot = Digraph(comment = 'Genome')
+    for node in g.nodes.datalist:
+        dot.node(str(node.node_id), str(node.node_id))
 
-dot.format= 'png'
-dot.render(directory='visualizaions', view = True)
+    for con in g.connections.datalist:
+        start, end = str(con.left), str(con.right)
+        if con.is_enabled:
+            dot.edge(start, end, label = str(con.weight), color = 'green')
+        else:
+            dot.edge(start, end, label = str(con.weight), color = 'red')
+
+    dot.format= 'png'
+    dot.render(directory='visualizaions', view = True)
+
+    print([con.innovation_id for con in g.connections.datalist])
+    print([node.node_id for node in g._get_topologically_sorted_nodes()])
 
 
 

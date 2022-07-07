@@ -150,29 +150,23 @@ class Genome:
         self.connections.add(to_con)
     
     def add_link(self)-> None:
-        node_to_index = {self.nodes.datalist[i].node_id:i for i in range(len(self.nodes))}
-        visited = [False for _ in range(len(self.nodes))]
+        sorted_nodes = self._get_topologically_sorted_nodes()
+        connection_ids = set()
 
-        sorted_nodes = []
-        incoming_counts = [0 for _ in range(len(self.nodes))]
-        outgoing_edges = [[] for _ in range(len(self.nodes))]
         for con in self.connections.datalist:
-            index_right = node_to_index[con.right]
-            index_left = node_to_index[con.left]
-            incoming_counts[index_right] += 1
-            outgoing_edges[index_left].append(index_right)
+            connection_ids.add(con.innovation_id)
         
-        stack = [node_to_index[i] for i in range(self.num_input_nodes)]
-        for i in range(self.num_input_nodes):
-            visited[node_to_index[i]] = True
-        
-        curr_index = 0
-        while curr_index < len(sorted_nodes):
-            node = sorted_nodes[curr_index]
-            for neighbor in outgoing_edges[node]:
+        for _ in range(100):
+            left = np.random.randint(0, len(sorted_nodes) - self.num_output_nodes)
+            right = np.random.randint(self.num_input_nodes, len(sorted_nodes))
 
+            id = self.neat.get_connection_id(left, right)
+            if id == -1 or id not in connection_ids:
+                new_weight = (np.random.random() * 2 - 1) * self.neat.shift_reset_strength
+                new_con = self.neat.create_hidden_connection(left, right, new_weight, True)
+                self.connections.add(new_con)
+                return
 
-            
     
     def reset_weight(self)-> None:
         rando_con = self.connections.get_random_element()
@@ -192,6 +186,40 @@ class Genome:
     
     def get_output(self, input: List[float]) -> List[float]:
         return [0.0]
+    
+    def _get_topologically_sorted_nodes(self):
+
+        adj_dict = {node.node_id: [] for node in self.nodes.datalist}
+        incoming_counts = {node.node_id: 0 for node in self.nodes.datalist}
+        id_to_node = {node.node_id: node for node in self.nodes.datalist}
+
+        for con in self.connections.datalist:
+            adj_dict[con.left].append(con.right)
+            incoming_counts[con.right] += 1
+        
+        sorted_nodes = []
+
+        for i in range(self.num_input_nodes):
+            sorted_nodes.append(id_to_node[i])
+        
+        curr_index = 0
+        while curr_index < len(sorted_nodes):
+            node = sorted_nodes[curr_index]
+            
+            for neighbor in adj_dict[node.node_id]:
+                incoming_counts[neighbor] -= 1
+                if incoming_counts[neighbor] == 0:
+                    neighbor_node = id_to_node[neighbor]
+                    if not neighbor_node.is_output:
+                        sorted_nodes.append(neighbor_node)
+            
+            curr_index += 1
+
+        for i in range(self.num_input_nodes, self.num_input_nodes + self.num_output_nodes):
+            sorted_nodes.append(id_to_node[i])
+        
+        return sorted_nodes
+
 
 
 
