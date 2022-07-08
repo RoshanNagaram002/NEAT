@@ -1,0 +1,65 @@
+myneat = Neat(3, 2, 100)
+g1 = Genome(myneat, 3, 2)
+g2 = Genome(myneat, 3, 2)
+from graphviz import Digraph
+
+count = -1
+while True:
+    count += 1
+    # print(count)
+    if count == 5:
+        break
+    # n = input("Loop?")
+
+    # if n == 'q':
+    #     break
+    g1.mutate()
+    print(g1.get_output([1, 1, 1]))
+    # g2.mutate()
+    # g1.fitness= 1
+    # g2.fitness = 2
+
+    # print(g1.fitness)
+    # print(g2.fitness)
+
+    # g_child = g1.cross_over(g2)
+
+    # g1, g2 = g_child1, g_child2
+    #print([node.node_id for node in g_child.nodes])
+    # if n == '1':
+    #     g.add_link()
+    
+    # elif n == '2':
+    #     g.add_node()
+    
+    # elif n == '3':
+    #     g.shift_weight()
+    
+    # elif n == '4':
+    #     g.reset_weight()
+    
+    # elif n == '5':
+    #     g.toggle_enable()
+print(g1.get_output([1, 1, 1]))
+
+dot = Digraph(comment = "Genoming!")
+# for g, curr in [(g1, 'g1'), (g2, 'g2'), (g_child, 'g_child')]:
+for g, curr in [(g1, 'g1')]:
+    
+    for node in g.nodes.datalist:
+        dot.node(curr + str(node.node_id), curr + str(node.node_id))
+
+    for con in g.connections.datalist:
+        start, end = str(con.left), str(con.right)
+        if con.is_enabled:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'green')
+        else:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'red')
+    print(curr)
+    print("Edges", [con.innovation_id for con in g.connections.datalist])
+    print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
+    print("Unsplit Edges", [con for con in g.unsplit_connections])
+    print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+
+dot.format= 'png'
+dot.render(directory='visualizaions', view = True)

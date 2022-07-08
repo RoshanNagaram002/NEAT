@@ -28,7 +28,7 @@ class Species:
         self.organisms.add(organism)
         organism.species = self # type: ignore
     
-    def go_Extinct(self):
+    def go_extinct(self):
         for organism in self.organisms:
             organism.species = None
     
@@ -62,6 +62,9 @@ class Species:
         for _ in range(num_to_kill):
             killed_organism = self.organisms.custom_pop()
             killed_organism.species = None
+    
+    def get_num_of_organisms(self) -> int:
+        return len(self.organisms)
 
     
     

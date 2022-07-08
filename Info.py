@@ -7,8 +7,11 @@ class Randomized_Info:
     def contains(self, key)-> bool:
         return key in self.dataset
     
-    def get_random_element(self):
-        return np.random.choice(self.datalist)
+    def get_random_element(self, weights = None):
+        if weights == None:
+            return np.random.choice(self.datalist)
+        weights[-1] = 1 - np.sum(weights[0:-1])
+        return np.random.choice(self.datalist, p=weights)
     
     def add(self, key) -> None:
         if key not in self.dataset:
@@ -28,10 +31,18 @@ class Randomized_Info:
         self.datalist.remove(key)
         self.dataset.remove(key)
     
-    def custom_pop(self):
-        key = self.datalist.pop()
+    def custom_pop(self, index = None):
+        if index == None:
+            index = -1
+        key = self.datalist.pop(index)
         self.dataset.remove(key)
         return key
+    
+    def replace(self, index, new):
+        old = self.datalist[index]
+        self.dataset.remove(old)
+        self.datalist[index] = new
+        self.dataset.add(new)
     
     def __len__(self):
         return len(self.datalist)
