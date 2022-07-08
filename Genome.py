@@ -14,7 +14,6 @@ class Genome:
         self.neat = neat
         self.num_input_nodes = num_input_nodes
         self.num_output_nodes = num_output_nodes
-        self.fitness = None
 
         self.create_base_genome()
     
@@ -67,12 +66,12 @@ class Genome:
         
         return ((c1 * num_excess) / N) + ((c2 * num_disjoint) / N) + (c3 * (total_weight_difference / num_matching))
 
-    def cross_over(self, g2):
+    def cross_over(self, g2, self_fitness : float, g2_fitness : float):
         child_genome = Genome(self.neat, self.num_input_nodes, self.num_output_nodes)
 
         beta_genome, alpha_genome = None, None
 
-        if self.fitness >= g2.fitness:
+        if self_fitness >= g2_fitness:
             beta_genome, alpha_genome = g2, self
         else:
             beta_genome, alpha_genome = self, g2
@@ -186,11 +185,7 @@ class Genome:
             return
         rando_con = self.connections.get_random_element()
         rando_con.is_enabled = not rando_con.is_enabled
-    
-    def conduct_fitness_test(self)-> None:
-        # self.fitness = something
-        return
-    
+        
     def get_output(self, input: List[float]) -> List[float]:
         assert len(input) == self.num_input_nodes
 
@@ -295,10 +290,6 @@ class Genome:
             sorted_nodes.append(id_to_node[i])
         
         return sorted_nodes
-
-    # Remove this Later
-    def set_fitness(self, x: float) -> None:
-        self.fitness = x
 
 def set_child_data(child:Genome) -> None:
     # Call this assuming you have the inherited nodes and inherited connections

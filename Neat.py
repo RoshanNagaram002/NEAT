@@ -4,13 +4,14 @@ import Genome
 class Neat:
     def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, 
                 shift_weight_strength = 0.3, shift_reset_strength = 1, survival_percentage = 0.8,
-                add_node_chance = 0.1, add_link_chance = 0.8, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.6):
+                add_node_chance = 0.1, add_link_chance = 0.8, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.6, species_thresh = 4):
         self.input_size = input_size
         self.output_size = output_size
         self.max_organisms = num_organisms
         self.c1 = c1
         self.c2 = c2
         self.c3 = c3
+        self.species_thresh = species_thresh
 
         self.shift_weight_strength = shift_weight_strength
         self.shift_reset_strength = shift_reset_strength

@@ -28,6 +28,11 @@ class Randomized_Info:
         self.datalist.remove(key)
         self.dataset.remove(key)
     
+    def custom_pop(self):
+        key = self.datalist.pop()
+        self.dataset.remove(key)
+        return key
+    
     def __len__(self):
         return len(self.datalist)
     
