@@ -61,6 +61,9 @@ class Genome:
         elif g2_pointer < len(g2.connections):
             num_excess = len(g2.connections) - g2_pointer
         
+        if num_matching == 0:
+            return ((c1 * num_excess) / N) + ((c2 * num_disjoint) / N)
+        
         return ((c1 * num_excess) / N) + ((c2 * num_disjoint) / N) + (c3 * (total_weight_difference / num_matching))
 
     def cross_over(self, g2):
@@ -73,9 +76,6 @@ class Genome:
         else:
             beta_genome, alpha_genome = self, g2
         beta_pointer, alpha_pointer = 0, 0
-
-        inherited_nodes = Randomized_Info()
-        inherited_connections = Sorted_Randomized_Info()
         
         while beta_pointer < len(beta_genome.connections) and alpha_pointer < len(alpha_genome.connections):
             curr_beta_con, curr_alpha_con = beta_genome.connections.get(beta_pointer), alpha_genome.connections.get(alpha_pointer)
@@ -86,12 +86,9 @@ class Genome:
                 else:
                     inherited_connection = curr_alpha_con.copy()
 
-                inherited_connections.add(inherited_connection)
-                left_node, right_node = inherited_connection.left, inherited_connection.right
-                if not inherited_nodes.contains(left_node):
-                    inherited_nodes.add(left_node)
-                if not inherited_nodes.contains(right_node):
-                    inherited_nodes.add(right_node)
+                child_genome.connections.add(inherited_connection)
+                self._add_hidden_connection_node_to_data(inherited_connection, child_genome.nodes)
+                
                 beta_pointer += 1
                 alpha_pointer += 1
             
@@ -101,12 +98,8 @@ class Genome:
             elif curr_alpha_con < curr_beta_con:
                 inherited_connection = curr_alpha_con.copy()
 
-                inherited_connections.add(inherited_connection)
-                left_node, right_node = inherited_connection.left, inherited_connection.right
-                if not inherited_nodes.contains(left_node):
-                    inherited_nodes.add(left_node)
-                if not inherited_nodes.contains(right_node):
-                    inherited_nodes.add(right_node)
+                child_genome.connections.add(inherited_connection)
+                self._add_hidden_connection_node_to_data(inherited_connection, child_genome.nodes)
 
                 alpha_pointer += 1
         
@@ -114,17 +107,11 @@ class Genome:
             curr_alpha_con = alpha_genome.connections.get(alpha_pointer)
             inherited_connection = curr_alpha_con.copy()
 
-            inherited_connections.add(inherited_connection)
-            left_node, right_node = inherited_connection.left, inherited_connection.right
-            if not inherited_nodes.contains(left_node):
-                inherited_nodes.add(left_node)
-            if not inherited_nodes.contains(right_node):
-                inherited_nodes.add(right_node)
+            child_genome.connections.add(inherited_connection)
+            self._add_hidden_connection_node_to_data(inherited_connection, child_genome.nodes)
+
             alpha_pointer += 1
         
-        child_genome.connections = inherited_connections
-        child_genome.nodes = inherited_nodes
-
         set_child_data(child_genome)
 
         return child_genome
@@ -157,13 +144,8 @@ class Genome:
 
         rando_con.is_enabled = False
 
-        self.connections.add(from_con)
-        self.tup_to_connection[(from_con.left, from_con.right)] = from_con
-        self.unsplit_connections.add_item((from_con.left, from_con.right))
-        
-        self.connections.add(to_con)
-        self.tup_to_connection[(to_con.left, to_con.right)] = to_con
-        self.unsplit_connections.add_item((to_con.left, to_con.right))
+        self._add_connection_to_genome(from_con)
+        self._add_connection_to_genome(to_con)
     
     def add_link(self)-> None:
         sorted_nodes = self._get_topologically_sorted_nodes()
@@ -182,9 +164,7 @@ class Genome:
             if id == -1 or id not in connection_ids:
                 new_weight = (np.random.random() * 2 - 1) * self.neat.shift_reset_strength
                 new_con = self.neat.create_hidden_connection(left, right, new_weight, True)
-                self.tup_to_connection[(left, right)] = new_con
-                self.connections.add(new_con)
-                self.unsplit_connections.add_item((left, right))
+                self._add_connection_to_genome(new_con)
                 return
 
     
@@ -213,11 +193,30 @@ class Genome:
     def get_output(self, input: List[float]) -> List[float]:
         return [0.0]
     
-    def _get_topologically_sorted_nodes(self):
+    def _add_connection_to_genome(self, new_con: Connection) -> None:
+        left, right = new_con.left, new_con.right
+        self.tup_to_connection[(left, right)] = new_con
+        self.connections.add(new_con)
+        self.unsplit_connections.add_item((left, right))
+    
+    def _add_hidden_connection_node_to_data(self, con: Connection, node_data: Randomized_Info) -> None:
+        # Use this only for hidden nodes
+        left_node_id, right_node_id = con.left, con.right
+        left_node, right_node = Node(left_node_id), Node(right_node_id)
+        if left_node not in node_data:
+            node_data.add(left_node)
+        if right_node not in node_data:
+            node_data.add(right_node)
+    
+    def _get_topologically_sorted_nodes(self) -> List[Node]:
         # Returns [input_nodes, topo sorted hidden nodes ..., output_nodes]
-        adj_dict = {node.node_id: [] for node in self.nodes}
-        incoming_counts = {node.node_id: 0 for node in self.nodes}
-        id_to_node = {node.node_id: node for node in self.nodes}
+        adj_dict = {}
+        incoming_counts = {}
+        id_to_node = {}
+        for node in self.nodes:
+            adj_dict[node.node_id] = []
+            incoming_counts[node.node_id] = 0
+            id_to_node[node.node_id] = node
 
         for con in self.connections:
             adj_dict[con.left].append(con.right)
@@ -245,6 +244,10 @@ class Genome:
             sorted_nodes.append(id_to_node[i])
         
         return sorted_nodes
+
+    # Remove this Later
+    def set_fitness(self, x: float) -> None:
+        self.fitness = x
 
 def set_child_data(child:Genome) -> None:
     # Call this assuming you have the inherited nodes and inherited connections

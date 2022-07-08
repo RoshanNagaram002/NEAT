@@ -73,14 +73,25 @@ from graphviz import Digraph
 count = -1
 while True:
     count += 1
-    if count == 1000:
-        break
-    # n = input("Mutation?")
-
-    # if n == 'q':
+    # print(count)
+    # if count == 50:
     #     break
+    n = input("Mutation?")
+
+    if n == 'q':
+        break
     g1.mutate()
     g2.mutate()
+    g1.fitness= 1
+    g2.fitness = 2
+
+    print(g1.fitness)
+    print(g2.fitness)
+
+    g_child = g1.cross_over(g2)
+
+    # g1, g2 = g_child1, g_child2
+    #print([node.node_id for node in g_child.nodes])
     # if n == '1':
     #     g.add_link()
     
@@ -95,30 +106,23 @@ while True:
     
     # elif n == '5':
     #     g.toggle_enable()
-    # index = 0
-    # dot = Digraph(comment = str(index))
-    for g in [g1, g2]:
-    #     curr = None
-    #     if index == 0:
-    #         print('g1')
-    #         curr = 'g1_'
-    #         index += 1
-    #     else:
-    #         curr = 'g2_'
-    #         print('g2')
+    dot = Digraph(comment = "Genoming!")
+    for g, curr in [(g1, 'g1'), (g2, 'g2'), (g_child, 'g_child')]:
         
-    #     for node in g.nodes.datalist:
-    #         dot.node(curr + str(node.node_id), curr + str(node.node_id))
+        for node in g.nodes.datalist:
+            dot.node(curr + str(node.node_id), curr + str(node.node_id))
 
-    #     for con in g.connections.datalist:
-    #         start, end = str(con.left), str(con.right)
-    #         if con.is_enabled:
-    #             dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'green')
-    #         else:
-    #             dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'red')
+        for con in g.connections.datalist:
+            start, end = str(con.left), str(con.right)
+            if con.is_enabled:
+                dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'green')
+            else:
+                dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'red')
+        print(curr)
+        print("Edges", [con.innovation_id for con in g.connections.datalist])
+        print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
+        print("Unsplit Edges", [con for con in g.unsplit_connections])
+        print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
 
-        print([con.innovation_id for con in g.connections.datalist])
-        print([node.node_id for node in g._get_topologically_sorted_nodes()])
-    
-    # dot.format= 'png'
-    # dot.render(directory='visualizaions', view = True)
+    dot.format= 'png'
+    dot.render(directory='visualizaions', view = True)
