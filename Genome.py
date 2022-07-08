@@ -2,6 +2,7 @@ from Info import Randomized_Info, Sorted_Randomized_Info, ListDict
 import numpy as np
 from Components import Node, Connection
 from typing import List
+from queue import Queue
 class Genome:
     def __init__(self, neat, num_input_nodes: int, num_output_nodes: int):
         # Data
@@ -191,7 +192,57 @@ class Genome:
         return
     
     def get_output(self, input: List[float]) -> List[float]:
-        return [0.0]
+        assert len(input) == self.num_input_nodes
+
+        adj_dict = {}
+        incoming_counts = {}
+        id_to_node = {}
+        node_to_values = {}
+
+        for node in self.nodes:
+            adj_dict[node.node_id] = []
+            incoming_counts[node.node_id] = 0
+            id_to_node[node.node_id] = node
+            node_to_values[node.node_id] = 0
+                
+        for con in self.connections:
+            if con.is_enabled:
+                adj_dict[con.left].append((con.right, con.weight))
+                incoming_counts[con.right] += 1
+        
+        q = Queue()
+
+        # Fill in the input_values and add into the stack
+        for i in range(self.num_input_nodes):
+            node_to_values[i] = input[i]
+            q.put(id_to_node[i])
+        
+        visited_outputs = set()
+        for i in range(self.num_input_nodes, self.num_input_nodes + self.num_output_nodes):
+            visited_outputs.add(i)
+
+        while not q.empty():
+            node = q.get()
+            node_to_values[node.node_id] = node.act_func(node_to_values[node.node_id])
+
+            if node.node_id in visited_outputs:
+                visited_outputs.remove(node.node_id)
+            
+            for neighbor, weight in adj_dict[node.node_id]:
+                incoming_counts[neighbor] -= 1
+                node_to_values[neighbor] += (node_to_values[node.node_id] * weight)
+                if incoming_counts[neighbor] == 0:
+                    neighbor_node = id_to_node[neighbor]
+                    if not neighbor_node.is_output:
+                        q.put(neighbor_node)
+        
+        # Apply the activation function to output that you did not reach
+        for output_id in visited_outputs:
+            output_node = id_to_node[output_id]
+            node_to_values[output_id] = output_node.act_func(node_to_values[output_id])
+
+        return [node_to_values[i] for i in range(self.num_input_nodes, self.num_input_nodes + self.num_output_nodes)]
+        
     
     def _add_connection_to_genome(self, new_con: Connection) -> None:
         left, right = new_con.left, new_con.right

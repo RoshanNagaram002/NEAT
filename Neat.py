@@ -4,7 +4,7 @@ import Genome
 class Neat:
     def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, 
                 shift_weight_strength = 0.3, shift_reset_strength = 1, survival_percentage = 0.8,
-                add_node_chance = 0.4, add_link_chance = 0.4, reset_chance = 0.4, shift_chance = 0.4, toggle_chance = 0.4):
+                add_node_chance = 0.1, add_link_chance = 0.8, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.6):
         self.input_size = input_size
         self.output_size = output_size
         self.max_organisms = num_organisms
@@ -74,21 +74,22 @@ count = -1
 while True:
     count += 1
     # print(count)
-    # if count == 50:
-    #     break
-    n = input("Mutation?")
-
-    if n == 'q':
+    if count == 5:
         break
+    # n = input("Loop?")
+
+    # if n == 'q':
+    #     break
     g1.mutate()
-    g2.mutate()
-    g1.fitness= 1
-    g2.fitness = 2
+    print(g1.get_output([1, 1, 1]))
+    # g2.mutate()
+    # g1.fitness= 1
+    # g2.fitness = 2
 
-    print(g1.fitness)
-    print(g2.fitness)
+    # print(g1.fitness)
+    # print(g2.fitness)
 
-    g_child = g1.cross_over(g2)
+    # g_child = g1.cross_over(g2)
 
     # g1, g2 = g_child1, g_child2
     #print([node.node_id for node in g_child.nodes])
@@ -106,23 +107,26 @@ while True:
     
     # elif n == '5':
     #     g.toggle_enable()
-    dot = Digraph(comment = "Genoming!")
-    for g, curr in [(g1, 'g1'), (g2, 'g2'), (g_child, 'g_child')]:
-        
-        for node in g.nodes.datalist:
-            dot.node(curr + str(node.node_id), curr + str(node.node_id))
+print(g1.get_output([1, 1, 1]))
 
-        for con in g.connections.datalist:
-            start, end = str(con.left), str(con.right)
-            if con.is_enabled:
-                dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'green')
-            else:
-                dot.edge(curr + start, curr + end, label = str(con.innovation_id), color = 'red')
-        print(curr)
-        print("Edges", [con.innovation_id for con in g.connections.datalist])
-        print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
-        print("Unsplit Edges", [con for con in g.unsplit_connections])
-        print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+dot = Digraph(comment = "Genoming!")
+# for g, curr in [(g1, 'g1'), (g2, 'g2'), (g_child, 'g_child')]:
+for g, curr in [(g1, 'g1')]:
+    
+    for node in g.nodes.datalist:
+        dot.node(curr + str(node.node_id), curr + str(node.node_id))
 
-    dot.format= 'png'
-    dot.render(directory='visualizaions', view = True)
+    for con in g.connections.datalist:
+        start, end = str(con.left), str(con.right)
+        if con.is_enabled:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'green')
+        else:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'red')
+    print(curr)
+    print("Edges", [con.innovation_id for con in g.connections.datalist])
+    print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
+    print("Unsplit Edges", [con for con in g.unsplit_connections])
+    print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+
+dot.format= 'png'
+dot.render(directory='visualizaions', view = True)
