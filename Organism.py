@@ -1,3 +1,4 @@
+from pyexpat import model
 from typing import List
 from Genome import Genome
 class Organism():
@@ -21,5 +22,13 @@ class Organism():
     
     # This is just temporary, just try to max the output
     def conduct_fitness_exam(self):
-        input = [1.0 for _ in range(self.genome.num_input_nodes)]
-        self.fitness = min(self.get_output(input))
+        inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
+        outputs = [0, 1, 1, 0]
+
+        diff = 0
+        for i in range(len(inputs)):
+            input, answer = inputs[i], outputs[i]
+            raw = self.get_output(input)[0]
+            diff += (answer - raw) ** 2
+
+        self.fitness = 4 - diff

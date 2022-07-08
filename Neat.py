@@ -6,8 +6,8 @@ from Organism import Organism
 from Species import Species
 class Neat:
     def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, 
-                shift_weight_strength = 0.3, shift_reset_strength = 1, survival_percentage = 0.8,
-                add_node_chance = 0.1, add_link_chance = 0.8, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.6, species_thresh = 4):
+                shift_weight_strength = 1, shift_reset_strength = 2, survival_percentage = 0.2,
+                add_node_chance = 0.2, add_link_chance = 0.3, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.01, species_thresh = 2.0):
         self.input_size = input_size
         self.output_size = output_size
         self.max_organisms = num_organisms
@@ -92,9 +92,9 @@ class Neat:
     def _generate_species(self) -> None:
         for species in self.species:
             species.reset()
-
+        
         for organism in self.organisms:
-            if organism.species != None:
+            if organism.species == None:
                 is_new_species = True
                 for species in self.species:
                     if species.categorize(organism):
@@ -113,9 +113,9 @@ class Neat:
             species.kill(1- self.survival_percentage)
 
     def _remove_extinct_species(self):
-        for i in range(len(self.species)):
+        for i in range(len(self.species) - 1, -1, -1):
             species = self.species.get(i)
-            if species.get_num_of_organisms <= 1:
+            if species.get_num_of_organisms() <= 1:
                 species.go_extinct()
                 self.species.custom_pop(i)
     
@@ -135,5 +135,49 @@ class Neat:
         for organism in self.organisms:
             organism.mutate()
 
-myneat = Neat(3, 2, 100)
-myneat.conduct_evolution()
+myneat = Neat(2, 1, 150)
+
+for i in range(500):
+    myneat.conduct_evolution()
+    # myneat.species_thresh *= .9
+    print("--------------------------------------", "Generation " + str(i))
+    for species in myneat.species:
+        total = species.get_num_of_organisms()
+        score = species.score
+        print(species, total, score)
+
+best_organism : Organism = None
+best_score = float('-inf')
+myneat._update_organism_fitness()
+for species in myneat.species:
+    for organism in species.organisms:
+        if organism.fitness > best_score:
+            best_organism = organism
+            best_score = organism.fitness
+
+print(best_organism.fitness)
+best_genome = best_organism.genome
+
+from graphviz import Digraph
+dot = Digraph(comment = "Genoming!")
+for g, curr in [(best_genome, '')]:
+    
+    for node in g.nodes.datalist:
+        dot.node(curr + str(node.node_id), curr + str(node.node_id))
+
+    for con in g.connections.datalist:
+        start, end = str(con.left), str(con.right)
+        if con.is_enabled:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'green')
+        else:
+            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'red')
+    print(curr)
+    print("Edges", [con.innovation_id for con in g.connections.datalist])
+    print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
+    print("Unsplit Edges", [con for con in g.unsplit_connections])
+    print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+
+dot.format= 'png'
+dot.render(directory='visualizaions', view = True)
+
+
