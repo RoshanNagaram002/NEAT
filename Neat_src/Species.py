@@ -17,7 +17,6 @@ class Species:
         self.score = total / len(self.organisms)
     
     def categorize(self, organism : Organism) -> bool:
-
         if self.rep.distance_from(organism) <= self.threshold:
             self.add_organism(organism)
             return True
@@ -56,7 +55,6 @@ class Species:
     
     def kill(self, kill_percentage : float) -> None:
         num_to_kill = int(kill_percentage * len(self.organisms))
-        
         # sort orgnisms form highest to lowest so we can pop the ends off in constant time
         self.organisms.datalist.sort(key = lambda x: x.fitness, reverse=True)
         for _ in range(num_to_kill):

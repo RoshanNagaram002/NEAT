@@ -3,32 +3,27 @@ import sys
 import pygame
 import random
 from pygame import * # type: ignore
-from Neat import *
-from Neat.Info import Network
+from Neat_src.Info import Network
 
-pygame.init()
+def setup():
+    pygame.init()
+    global screen_size_display, FPS, gravity, black_color, white_color, bg_color, highest_scores, screen_layout_display, time_clock, width_screen, height_screen, old_count, obstacle_count
+    screen_size_display = (width_screen, height_screen) = (600, 150)
+    FPS = 60
+    gravity = 0.6
 
-screen_size_display = (width_screen, height_screen) = (600, 150)
-FPS = 60
-gravity = 0.6
+    black_color = (0,0,0)
+    white_color = (255,255,255)
+    bg_color = (235, 235, 235)
 
-black_color = (0,0,0)
-white_color = (255,255,255)
-bg_color = (235, 235, 235)
+    highest_scores = 0
 
-highest_scores = 0
+    screen_layout_display = pygame.display.set_mode(screen_size_display)
+    time_clock = pygame.time.Clock()
+    pygame.display.set_caption("Dino Run ")
 
-screen_layout_display = pygame.display.set_mode(screen_size_display)
-time_clock = pygame.time.Clock()
-pygame.display.set_caption("Dino Run ")
-
-jump_sound = pygame.mixer.Sound('resources/jump.wav')
-die_sound = pygame.mixer.Sound('resources/die.wav')
-checkPoint_sound = pygame.mixer.Sound('resources/checkPoint.wav')
-
-
-obstacle_count = 0 
-old_count = obstacle_count
+    obstacle_count = 0 
+    old_count = obstacle_count
 
 def load_image(
     name,
@@ -273,6 +268,7 @@ class Scoreboard():
 
 
 def gameplay(net: Network, view = True):
+    setup()
     global highest_scores
     gp = 4
     s_Menu = False
@@ -330,11 +326,11 @@ def gameplay(net: Network, view = True):
 
                 # make it really "far" left so it does not have to "worry" about it?
                 # Make it have no height and be below me? 
-                temp_tup = (10**5, 0, 10**6, 0)
+                temp_tup = (10**3, 0, 10**3.1, 0)
                 
                 # model will only take into account the 3 nearest obstacles
                 while len(total_obstacle_boxes) < 3:
-                    total_obstacle_boxes.append(temp_tup)
+                    total_obstacle_boxes.append(temp_tup) # type: ignore
                 
                 for obst in total_obstacle_boxes:
                     left, bottom, right, top = obst
@@ -358,6 +354,9 @@ def gameplay(net: Network, view = True):
                 
                 else:
                     gamer_Dino.ducking = False
+
+                for event in pygame.event.get():
+                    continue
 
 
                 # for event in pygame.event.get():

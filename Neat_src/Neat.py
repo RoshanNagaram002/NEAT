@@ -89,10 +89,11 @@ class Neat:
         self._remove_extinct_species()
         self._repopulate()
         self._mutate()
+        print("How many species", len(self.species))
         return best_net, best_score
     
     def _update_organism_fitness(self) -> Tuple[Network, float]:
-        best_score = 0.0
+        best_score = float('-inf')
         best_net : Network = None # type: ignore
         for organism in self.organisms:
             org_net : Network = organism.extract_network()
@@ -134,7 +135,9 @@ class Neat:
     
     def _repopulate(self):
         total_score = sum([species.score for species in self.species])
-        weights = [species.score/total_score for species in self.species]
+        weights = None
+        if total_score != 0:
+            weights = [species.score/total_score for species in self.species]
 
         for i in range(len(self.organisms)):
             organism = self.organisms.get(i)

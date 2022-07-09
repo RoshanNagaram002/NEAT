@@ -1,8 +1,10 @@
-from sklearn.linear_model import GammaRegressor
-
+import sys
+import os
 from dino import *
-from Neat.Neat import Neat
-from Neat.Info import Network
+sys.path.append('Neat_src')
+from Neat_src.Neat import Neat
+from Neat_src.Info import Network
+import pickle
 
 
 def save_network(net : Network, name_of_file : str, folder : str):
@@ -36,7 +38,7 @@ def train():
     c3: float = 1 
     shift_weight_strength = 1
     shift_reset_strength = 2
-    survival_percentage = 0.2
+    survival_percentage = 0.3
     add_node_chance = 0.2
     add_link_chance = 0.3
     reset_chance = 0.6
