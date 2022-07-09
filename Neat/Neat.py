@@ -1,11 +1,14 @@
-from turtle import color
 from Components import Node, Connection
 from Genome import Genome
-from Info import Randomized_Info
+from Info import Randomized_Info, Network
 from Organism import Organism
 from Species import Species
+import os
+from pathlib import Path
+import pickle
+from typing import Tuple
 class Neat:
-    def __init__(self, input_size: int, output_size: int, num_organisms: int, c1: float = 1, c2: float = 1, c3: float = 1, 
+    def __init__(self, input_size: int, output_size: int, num_organisms: int, fitness_func, c1: float = 1, c2: float = 1, c3: float = 1, 
                 shift_weight_strength = 1, shift_reset_strength = 2, survival_percentage = 0.2,
                 add_node_chance = 0.2, add_link_chance = 0.3, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.01, species_thresh = 2.0):
         self.input_size = input_size
@@ -32,6 +35,8 @@ class Neat:
 
         self.organisms = Randomized_Info()
         self.species = Randomized_Info()
+
+        self.fitness_func = fitness_func
 
         # Populate global_nodes with the input and output nodes
         # -1 Means None
@@ -77,17 +82,25 @@ class Neat:
             id = self.global_connections[(left, right)]
         return id
     
-    def conduct_evolution(self) -> None:
-        self._update_organism_fitness()
+    def conduct_evolution(self) -> Tuple[Network, float]:
+        best_net, best_score = self._update_organism_fitness()
         self._generate_species()
         self._kill()
         self._remove_extinct_species()
         self._repopulate()
         self._mutate()
+        return best_net, best_score
     
-    def _update_organism_fitness(self):
+    def _update_organism_fitness(self) -> Tuple[Network, float]:
+        best_score = 0.0
+        best_net : Network = None # type: ignore
         for organism in self.organisms:
-            organism.conduct_fitness_exam()
+            org_net : Network = organism.extract_network()
+            organism.fitness = self.fitness_func(org_net)
+            if organism.fitness > best_score:
+                best_score = organism.fitness
+                best_net = org_net
+        return best_net, best_score
     
     def _generate_species(self) -> None:
         for species in self.species:
@@ -135,49 +148,85 @@ class Neat:
         for organism in self.organisms:
             organism.mutate()
 
-myneat = Neat(2, 1, 150)
+def conduct_fitness_exam(net : Network):
+    inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    outputs = [0, 1, 1, 0]
 
-for i in range(500):
-    myneat.conduct_evolution()
-    # myneat.species_thresh *= .9
-    print("--------------------------------------", "Generation " + str(i))
-    for species in myneat.species:
-        total = species.get_num_of_organisms()
-        score = species.score
-        print(species, total, score)
+    diff = 0
+    for i in range(len(inputs)):
+        input, answer = inputs[i], outputs[i]
+        raw = net.get_output(input)[0]
+        diff += (answer - raw) ** 2
 
-best_organism : Organism = None
-best_score = float('-inf')
-myneat._update_organism_fitness()
-for species in myneat.species:
-    for organism in species.organisms:
-        if organism.fitness > best_score:
-            best_organism = organism
-            best_score = organism.fitness
+    return 4 - diff
 
-print(best_organism.fitness)
-best_genome = best_organism.genome
-
-from graphviz import Digraph
-dot = Digraph(comment = "Genoming!")
-for g, curr in [(best_genome, '')]:
+def save_network(net : Network, name_of_file : str, folder : str):
+    folder_path = os.path.join(os.getcwd(), folder)
+    file_path = os.path.join(os.getcwd(), folder, name_of_file)
+    if not os.path.isdir(folder_path):
+        os.mkdir(folder_path)
     
-    for node in g.nodes.datalist:
-        dot.node(curr + str(node.node_id), curr + str(node.node_id))
+    net_info = [net.nodes, net.connections, net.num_input_nodes, net.num_output_nodes]
+    with open(file_path, 'wb') as f:
+        pickle.dump(net_info, f) # type: ignore
 
-    for con in g.connections.datalist:
-        start, end = str(con.left), str(con.right)
-        if con.is_enabled:
-            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'green')
-        else:
-            dot.edge(curr + start, curr + end, label = str(con.weight), color = 'red')
-    print(curr)
-    print("Edges", [con.innovation_id for con in g.connections.datalist])
-    print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
-    print("Unsplit Edges", [con for con in g.unsplit_connections])
-    print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+def replay(file_path : str):
+    if not os.path.exists(file_path):
+        print("Does not Exist")
+        return
+    with open(file_path, 'rb') as f:
+        nodes, edges, num_input, num_output = pickle.load(f) # type: ignore
+        net = Network(nodes, edges, num_input, num_output)
+        print(conduct_fitness_exam(net))
 
-dot.format= 'png'
-dot.render(directory='visualizaions', view = True)
+
+
+# myneat = Neat(2, 1, 150, conduct_fitness_exam)
+# folder = 'XOR'
+# # for i in range(500):
+# #     best_net, best_score= myneat.conduct_evolution()
+# #     save_network(best_net, 'gen_' + str(i), folder)
+# #     # myneat.species_thresh *= .9
+# #     print("--------------------------------------", "Generation " + str(i))
+# #     for species in myneat.species:
+# #         total = species.get_num_of_organisms()
+# #         score = species.score
+# #         print(species, total, score)
+
+# # best_organism : Organism = None # type: ignore
+# # best_score = float('-inf')
+# # myneat._update_organism_fitness()
+# # for species in myneat.species:
+# #     for organism in species.organisms:
+# #         if organism.fitness > best_score:
+# #             best_organism = organism
+# #             best_score = organism.fitness
+
+# # print(best_organism.fitness)
+# # best_genome = best_organism.genome
+# replay_file = os.path.join(os.getcwd(), folder, 'gen_499')
+# replay(replay_file)
+
+# # from graphviz import Digraph
+# # dot = Digraph(comment = "Genoming!")
+# # for g, curr in [(best_genome, '')]:
+    
+# #     for node in g.nodes.datalist:
+# #         dot.node(curr + str(node.node_id), curr + str(node.node_id))
+
+# #     for con in g.connections.datalist:
+# #         start, end = str(con.left), str(con.right)
+# #         if con.is_enabled:
+# #             dot.edge(curr + start, curr + end, label = str(con.weight), color = 'green')
+# #         else:
+# #             dot.edge(curr + start, curr + end, label = str(con.weight), color = 'red')
+# #     print(curr)
+# #     print("Edges", [con.innovation_id for con in g.connections.datalist])
+# #     print("Nodes", [node.node_id for node in g._get_topologically_sorted_nodes()])
+# #     print("Unsplit Edges", [con for con in g.unsplit_connections])
+# #     print("Tup_to_conn", [(tup[0] == con.left, tup[1] == con.right) for tup, con in g.tup_to_connection.items()])
+
+# # dot.format= 'png'
+# # dot.render(directory='visualizaions', view = True)
 
 

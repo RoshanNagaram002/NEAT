@@ -2,9 +2,9 @@ import os
 import sys
 import pygame
 import random
-from pygame import *
+from pygame import * # type: ignore
 from Neat import *
-from Neat.Organism import Organism
+from Neat.Info import Network
 
 pygame.init()
 
@@ -134,7 +134,7 @@ class Dino():
 
     def update(self):
         if self.jumping:
-            self.movement[1] = self.movement[1] + gravity
+            self.movement[1] = self.movement[1] + gravity # type: ignore
 
         if self.jumping:
             self.index = 0
@@ -176,7 +176,7 @@ class Dino():
 
 class Cactus(pygame.sprite.Sprite):
     def __init__(self, speed=5, sx=-1, sy=-1):
-        pygame.sprite.Sprite.__init__(self,self.containers)
+        pygame.sprite.Sprite.__init__(self,self.containers) # type: ignore
         self.imgs, self.rect = load_sprite_sheet('cactus-small.png', 3, 1, sx, sy, -1)
         self.rect.bottom = int(0.98 * height_screen)
         self.rect.left = width_screen + self.rect.width
@@ -184,10 +184,10 @@ class Cactus(pygame.sprite.Sprite):
         self.movement = [-1*speed,0]
 
     def draw(self):
-        screen_layout_display.blit(self.image, self.rect)
+        screen_layout_display.blit(self.image, self.rect) # type: ignore
 
     def update(self):
-        self.rect = self.rect.move(self.movement)
+        self.rect = self.rect.move(self.movement) # type: ignore
 
         if self.rect.right < 0:
             global obstacle_count
@@ -196,7 +196,7 @@ class Cactus(pygame.sprite.Sprite):
 
 class birds(pygame.sprite.Sprite):
     def __init__(self, speed=5, sx=-1, sy=-1):
-        pygame.sprite.Sprite.__init__(self,self.containers)
+        pygame.sprite.Sprite.__init__(self,self.containers) # type: ignore
         self.imgs, self.rect = load_sprite_sheet('birds.png', 2, 1, sx, sy, -1)
         self.birds_height = [height_screen * 0.82, height_screen * 0.75, height_screen * 0.60]
         self.rect.centery = self.birds_height[random.randrange(0, 3)]
@@ -207,13 +207,13 @@ class birds(pygame.sprite.Sprite):
         self.counter = 0
 
     def draw(self):
-        screen_layout_display.blit(self.image, self.rect)
+        screen_layout_display.blit(self.image, self.rect) # type: ignore
 
     def update(self):
         if self.counter % 10 == 0:
             self.index = (self.index+1)%2
         self.image = self.imgs[self.index]
-        self.rect = self.rect.move(self.movement)
+        self.rect = self.rect.move(self.movement) # type: ignore
         self.counter = (self.counter + 1)
         if self.rect.right < 0:
             global obstacle_count
@@ -251,11 +251,11 @@ class Scoreboard():
         self.image = pygame.Surface((55,int(11*6/5)))
         self.rect = self.image.get_rect()
         if x == -1:
-            self.rect.left = width_screen * 0.89
+            self.rect.left = width_screen * 0.89 # type: ignore
         else:
             self.rect.left = x
         if y == -1:
-            self.rect.top = height_screen * 0.1
+            self.rect.top = height_screen * 0.1 # type: ignore
         else:
             self.rect.top = y
 
@@ -265,14 +265,14 @@ class Scoreboard():
     def update(self,score):
         score_digits = extractDigits(score)
         self.image.fill(bg_color)
-        for s in score_digits:
+        for s in score_digits: # type: ignore
             self.image.blit(self.scre_img[s], self.screrect)
             self.screrect.left += self.screrect.width
         self.screrect.left = 0
 
 
 
-def gameplay(organism : Organism, view = True):
+def gameplay(net: Network, view = True):
     global highest_scores
     gp = 4
     s_Menu = False
@@ -290,8 +290,8 @@ def gameplay(organism : Organism, view = True):
 
     last_end_obs = pygame.sprite.Group()
 
-    Cactus.containers = cactusan
-    birds.containers = smallBird
+    Cactus.containers = cactusan # type: ignore
+    birds.containers = smallBird # type: ignore
 
 
     rbtn_image,rbtn_rect = load_image('replay_button.png',35,31,-1)
@@ -304,8 +304,8 @@ def gameplay(organism : Organism, view = True):
     ado_image.blit(t_images[10],t_rect)
     t_rect.left += t_rect.width
     ado_image.blit(t_images[11],t_rect)
-    ado_rect.top = height_screen * 0.1
-    ado_rect.left = width_screen * 0.73
+    ado_rect.top = height_screen * 0.1 # type: ignore
+    ado_rect.left = width_screen * 0.73 # type: ignore
 
     while not g_exit:
         
@@ -320,8 +320,8 @@ def gameplay(organism : Organism, view = True):
             else:
                 # Game Speed, 3 bounding boxes of closest obstacles and in front
                 inputs = [gp]
-                cactus_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in cactusan if c.rect.right >= 0]
-                bird_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in smallBird if c.rect.right >= 0]
+                cactus_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in cactusan if c.rect.right >= 0] # type: ignore
+                bird_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in smallBird if c.rect.right >= 0] # type: ignore
 
                 total_obstacle_boxes = cactus_boxes + bird_boxes
                 
@@ -343,14 +343,14 @@ def gameplay(organism : Organism, view = True):
                     inputs.append(right)
                     inputs.append(top)
 
-                raw_jump, raw_duck = organism.get_output(inputs)
+                raw_jump, raw_duck = net.get_output(inputs)
                 is_jump = True if raw_jump > .5 else False
                 is_duck = True if raw_duck > .5 else False
 
                 if is_jump:
                     if gamer_Dino.rect.bottom == int(0.98 * height_screen):
                         gamer_Dino.jumping = True
-                        gamer_Dino.movement[1] = -1*gamer_Dino.jumpSpeed
+                        gamer_Dino.movement[1] = -1*gamer_Dino.jumpSpeed # type: ignore
                 
                 if is_duck:
                     if not (gamer_Dino.jumping and gamer_Dino.dead):
@@ -386,13 +386,13 @@ def gameplay(organism : Organism, view = True):
             #     old_count = obstacle_count
             
             for c in cactusan:        
-                c.movement[0] = -1*gp
-                if pygame.sprite.collide_mask(gamer_Dino,c):
+                c.movement[0] = -1*gp # type: ignore
+                if pygame.sprite.collide_mask(gamer_Dino,c): # type: ignore
                     gamer_Dino.dead = True
 
             for p in smallBird:
-                p.movement[0] = -1*gp
-                if pygame.sprite.collide_mask(gamer_Dino,p):
+                p.movement[0] = -1*gp # type: ignore
+                if pygame.sprite.collide_mask(gamer_Dino,p): # type: ignore
                     gamer_Dino.dead = True
 
             if len(cactusan) < 2:
@@ -401,13 +401,13 @@ def gameplay(organism : Organism, view = True):
                     last_end_obs.add(Cactus(gp,40,40))
                 else:
                     for l in last_end_obs:
-                        if l.rect.right < width_screen*0.7 and random.randrange(0, 50) == 10:
+                        if l.rect.right < width_screen*0.7 and random.randrange(0, 50) == 10: # type: ignore
                             last_end_obs.empty()
                             last_end_obs.add(Cactus(gp, 40, 40))
 
             if len(smallBird) == 0 and random.randrange(0,200) == 10 and counter > 500:
                 for l in last_end_obs:
-                    if l.rect.right < width_screen*0.8:
+                    if l.rect.right < width_screen*0.8: # type: ignore
                         last_end_obs.empty()
                         last_end_obs.add(birds(gp, 46, 40))
 
