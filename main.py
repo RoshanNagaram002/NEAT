@@ -1,8 +1,8 @@
 from sklearn.linear_model import GammaRegressor
 
 from dino import *
-from Neat import *
 from Neat.Neat import Neat
+from Neat.Info import Network
 
 
 def save_network(net : Network, name_of_file : str, folder : str):
