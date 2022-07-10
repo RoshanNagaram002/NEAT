@@ -29,7 +29,7 @@ def replay(file_path : str):
 
 def train():
     num_inputs, num_outputs = 13, 2
-    num_players = 150
+    num_players = 300
     c1 = 1
     c2 = 1
     c3 = 1
@@ -60,5 +60,4 @@ def train():
         best_score = max(best_score, gen_best_score)
         save_network(gen_best_net, 'gen_' + str(gen_num), folder)
         gen_num += 1
-
-train()
+replay("Dino_models/gen_55")
