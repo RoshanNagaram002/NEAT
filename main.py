@@ -28,7 +28,7 @@ def replay(file_path : str):
 
 
 def train():
-    num_inputs, num_outputs = 13, 2
+    num_inputs, num_outputs = 5, 2
     num_players = 300
     c1 = 1
     c2 = 1
@@ -36,15 +36,15 @@ def train():
     c1: float = 1
     c2: float = 1
     c3: float = 1 
-    shift_weight_strength = 1
-    shift_reset_strength = 2
-    survival_percentage = 0.3
+    shift_weight_strength = .5
+    shift_reset_strength = 1
+    survival_percentage = 0.2
     add_node_chance = 0.2
-    add_link_chance = 0.3
-    reset_chance = 0.6
-    shift_chance = 0.6
+    add_link_chance = 0.5
+    reset_chance = 0.1
+    shift_chance = 0.8
     toggle_chance = 0.01
-    species_thresh = 2.0
+    species_thresh = 3.0
     
     dino_neat = Neat(num_inputs, num_outputs, num_players, gameplay, c1 = c1, c2 = c2, c3 = c3, shift_weight_strength=shift_weight_strength,
                 shift_reset_strength = shift_reset_strength, survival_percentage= survival_percentage, add_node_chance=add_node_chance,
@@ -60,4 +60,5 @@ def train():
         best_score = max(best_score, gen_best_score)
         save_network(gen_best_net, 'gen_' + str(gen_num), folder)
         gen_num += 1
-replay("Dino_models/gen_55")
+
+train()

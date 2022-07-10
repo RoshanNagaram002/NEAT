@@ -329,8 +329,11 @@ def gameplay(net: Network, view = True):
                 temp_tup = (10**3, 0, 10**3.1, 0)
                 
                 # model will only take into account the 3 nearest obstacles
-                while len(total_obstacle_boxes) < 3:
+                while len(total_obstacle_boxes) < 1:
                     total_obstacle_boxes.append(temp_tup) # type: ignore
+
+                # Take the first obstacle
+                total_obstacle_boxes = total_obstacle_boxes[0:1]
                 
                 for obst in total_obstacle_boxes:
                     left, bottom, right, top = obst
@@ -357,25 +360,6 @@ def gameplay(net: Network, view = True):
 
                 for event in pygame.event.get():
                     continue
-
-
-                # for event in pygame.event.get():
-                #     if event.type == pygame.QUIT:
-                #         g_exit = True
-                #         g_Over = True
-                #     if event.type == pygame.KEYDOWN:
-                #         if event.key == pygame.K_SPACE:
-                #             if gamer_Dino.rect.bottom == int(0.98 * height_screen):
-                #                 gamer_Dino.jumping = True
-                #                 gamer_Dino.movement[1] = -1*gamer_Dino.jumpSpeed
-
-                #         if event.key == pygame.K_DOWN:
-                #             if not (gamer_Dino.jumping and gamer_Dino.dead):
-                #                 gamer_Dino.ducking = True
-
-                #     if event.type == pygame.KEYUP:
-                #         if event.key == pygame.K_DOWN:
-                #             gamer_Dino.ducking = False
 
             global obstacle_count
             global old_count

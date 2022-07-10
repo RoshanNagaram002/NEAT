@@ -9,7 +9,7 @@ import pickle
 from typing import Tuple
 class Neat:
     def __init__(self, input_size: int, output_size: int, num_organisms: int, fitness_func, c1: float = 1, c2: float = 1, c3: float = 1, 
-                shift_weight_strength = 1, shift_reset_strength = 2, survival_percentage = 0.2,
+                shift_weight_strength : float = 1, shift_reset_strength = 2, survival_percentage = 0.2,
                 add_node_chance = 0.2, add_link_chance = 0.3, reset_chance = 0.6, shift_chance = 0.6, toggle_chance = 0.01, species_thresh = 2.0):
         self.input_size = input_size
         self.output_size = output_size
