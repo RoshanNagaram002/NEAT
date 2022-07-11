@@ -315,7 +315,7 @@ def gameplay(net: Network, view = True):
             # Change this else to to allow for output
             else:
                 # Game Speed, 3 bounding boxes of closest obstacles and in front
-                inputs = [gp]
+                inputs = [gp, int(gamer_Dino.ducking), int(gamer_Dino.jumping)]
                 cactus_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in cactusan if c.rect.right >= 0] # type: ignore
                 bird_boxes = [(c.rect.left, c.rect.bottom, c.rect.right, c.rect.top) for c in smallBird if c.rect.right >= 0] # type: ignore
 

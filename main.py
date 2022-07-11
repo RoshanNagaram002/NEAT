@@ -28,7 +28,7 @@ def replay(file_path : str):
 
 
 def train():
-    num_inputs, num_outputs = 5, 2
+    num_inputs, num_outputs = 7, 2
     num_players = 300
     c1 = 1
     c2 = 1
